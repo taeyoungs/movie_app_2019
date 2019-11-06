@@ -1,76 +1,65 @@
 import React from 'react';
-import PropTypes from 'prop-types';
+import axios from 'axios';
+import Movie from './Movie';
+import './App.css';
 
-const foodILike = [
-  {
-    id: 1,
-    name: 'Pasta',
-    image:
-      'https://images.unsplash.com/photo-1551183053-bf91a1d81141?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1103&q=80',
-    rating: 4.3,
-  },
-  {
-    id: 2,
-    name: 'Pizza',
-    image:
-      'https://images.unsplash.com/photo-1513104890138-7c749659a591?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1050&q=80',
-    rating: 4.7,
-  },
-  {
-    id: 3,
-    name: 'Kimchi',
-    image:
-      'https://images.unsplash.com/photo-1487769723072-0e6602799af7?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1050&q=80',
-    rating: 3.6,
-  },
-  {
-    id: 4,
-    name: 'Noodle',
-    image:
-      'https://images.unsplash.com/photo-1537081956137-3931105e2d37?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=800&q=80',
-    rating: 4.8,
-  },
-  {
-    id: 5,
-    name: 'Curry',
-    image:
-      'https://images.unsplash.com/photo-1455619452474-d2be8b1e70cd?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1050&q=80',
-    rating: 2.6,
-  },
-];
+class App extends React.Component {
+  state = {
+    isLoading: true,
+    movies: [],
+  };
 
-function Food({ name, picture, rating }) {
-  return (
-    <div>
-      <h1>I like {name}</h1>
-      <img src={picture} alt={name} width="300" />
-      <h3>rating: {rating} / 5.0</h3>
-    </div>
-  );
-}
+  getMoives = async () => {
+    const {
+      data: {
+        data: { movies },
+      },
+    } = await axios.get(
+      'https://yts-proxy.now.sh/list_movies.json?sort_by=like_count',
+    );
+    this.setState({
+      movies,
+      isLoading: false,
+    });
+  };
 
-Food.propTypes = {
-  name: PropTypes.string.isRequired,
-  picture: PropTypes.string.isRequired,
-  rating: PropTypes.number.isRequired,
-};
+  componentDidMount() {
+    this.getMoives();
+  }
 
-function App() {
-  return (
-    <div className="App">
-      <h1>Hello</h1>
-      {foodILike.map(menu => {
-        return (
-          <Food
-            key={menu.id}
-            name={menu.name}
-            picture={menu.image}
-            rating={menu.rating}
-          />
-        );
-      })}
-    </div>
-  );
+  renderMoive = () => {
+    const { movies } = this.state;
+    return movies.map(movie => (
+      <Movie
+        key={movie.id}
+        id={movie.id}
+        title={movie.title}
+        year={movie.year}
+        rating={movie.rating}
+        summary={movie.summary}
+        poster={movie.medium_cover_image}
+        genres={movie.genres}
+        url={movie.url}
+      />
+    ));
+  };
+
+  render() {
+    const { isLoading } = this.state;
+    return (
+      <section className="container">
+        <div className="layer">
+          {isLoading ? (
+            <div className="loader">
+              <span className="loader__text">Loading ...</span>
+            </div>
+          ) : (
+            <div className="movies">{this.renderMoive()}</div>
+          )}
+        </div>
+      </section>
+    );
+  }
 }
 
 export default App;
